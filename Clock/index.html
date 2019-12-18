@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <script src="https://momentjs.com/downloads/moment.min.js"></script>
+        <script src="main.js"></script>
+        <link rel="stylesheet" href="style.css" />
+        <h1 id="header" class="header">Hello World!</h1>
+    </head>
+    <body>
+        <p id="currentTime"></p>
+    </body>
+    <script>
+        var m = main();
+        setInterval(function(){
+            m.ut(moment().format('MMMM Do YYYY, h:mm:ss a'));
+        }, 1000);
+    </script>
+</html>

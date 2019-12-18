@@ -1,0 +1,48 @@
+[
+    {
+        "name" : "rory",
+        "dbo" : "",
+        "username" : "",
+        "email" : "",
+        "firstname" : "",
+        "lastname" : "",
+        "age" : 12,
+        "likePokemon" : true,
+        "pets" : [
+            {
+                "name" : "A",
+                "favouriteFoods" : [
+                    {
+                        "brand" : "A"
+                    }
+                ] 
+            },
+            {
+                "name" : "B"
+            }
+        ]
+    },
+    {
+        "name" : "linh",
+        "dbo" : "",
+        "username" : "",
+        "email" : "",
+        "firstname" : "",
+        "lastname" : "",
+        "age" : 12,
+        "likePokemon" : true,
+        "pets" : [
+            {
+                "name" : "A",
+                "favouriteFoods" : [
+                    {
+                        "brand" : "A"
+                    }
+                ] 
+            },
+            {
+                "name" : "B"
+            }
+        ]
+    }
+]
