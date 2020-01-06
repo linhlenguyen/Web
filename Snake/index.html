@@ -1,0 +1,88 @@
+<html>
+    <body>
+        <canvas id="myCanvas" width="800" height="600" style="border:1px solid #000000;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+    </body>
+    <script>
+        var width = 800;
+        var height = 600;
+        var gridSize = 40;
+        var snakeColor = '#000000';
+        var state = {
+            snake : {
+                x : 0,
+                y : 0
+            }
+        };
+        var canvas = document.getElementById("myCanvas");
+        var context = canvas.getContext("2d");
+        var drawGrid = (ctx, gridSize, w, h) => {
+            //draw vertical lines
+            ctx.beginPath();
+            for (let i = 0; i < w; i = i + gridSize)
+            {
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, h);
+            }
+            //draw horizontal lines
+            for (let i = 0; i < h; i = i + gridSize)
+            {
+                ctx.moveTo(0, i);
+                ctx.lineTo(w, i);
+            }
+            ctx.strokeStyle = '#EFEFEF' //'#'+Math.random().toString(16).substr(-6);
+            ctx.stroke();
+        };
+        //[(x : 1, y : 1),(x : 1, y : 2),(x : 1, y : 3)]
+        var drawSnake = (ctx, snake, gridSize) => {
+            ctx.beginPath();
+            ctx.fillRect(snake.x * gridSize, snake.y * gridSize, gridSize, gridSize);
+            /*for (let i = 0; i < snake.length; i++)
+            {
+                ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize, gridSize);
+            }*/
+            ctx.stroke();
+        };
+        var render = (ctx, canvas, state) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid(context, gridSize, width, height);
+            drawSnake(context, state.snake, gridSize);
+        };
+
+        setInterval(() => {
+            render(context, canvas, state);
+        });
+
+        document.addEventListener('keydown', function(event) {
+            console.log("keydown!");
+            var currentSnake = state.snake;
+            var newSnake = {}
+            if (event.code == 'ArrowLeft') {
+                newSnake = {
+                    x : currentSnake.x > 0 ? currentSnake.x - 1 : currentSnake.x,
+                    y : currentSnake.y
+                }
+            }
+            if (event.code == 'ArrowRight') {
+                newSnake = {
+                    x : currentSnake.x < width/gridSize - 1 ? currentSnake.x + 1 : currentSnake.x,
+                    y : currentSnake.y
+                }
+            }
+            if (event.code == 'ArrowUp') {
+                newSnake = {
+                    x : currentSnake.x,
+                    y : currentSnake.y > 0 ? currentSnake.y - 1 : currentSnake.y
+                }
+            }
+            if (event.code == 'ArrowDown') {
+                newSnake = {
+                    x : currentSnake.x,
+                    y : currentSnake.y < height/gridSize - 1 ? currentSnake.y + 1: currentSnake.y
+                }
+            }
+            state = {...state, snake : newSnake};
+        });
+    </script>
+</html>
