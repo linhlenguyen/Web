@@ -1,23 +1,36 @@
 <html>
+    <head>
+    </head>
     <body>
-        <canvas id="myCanvas" width="800" height="600" style="border:1px solid #000000;">
+        <canvas id="myCanvas" width="800" height="600" style="border:1px solid #AAAAAA;">
             Your browser does not support the HTML5 canvas tag.
         </canvas>
     </body>
     <script>
         var width = 800;
         var height = 600;
-        var gridSize = 40;
+        var gridSize = 30;
         var snakeColor = '#000000';
+        var renderDelay = 50;
+        var directionMap = {
+            1 : "Right",
+            2 : "Left",
+            3 : "Up",
+            4 : "Down"
+        };
         var state = {
+            fruits : [
+
+            ],
             snake : {
-                x : 0,
-                y : 0
+                direction : 1,
+                body : [{x : 0, y: 0}, {x : 0, y: 1}, {x : 1, y: 1}, {x : 2, y: 1}, {x : 3, y: 1}, {x : 4, y: 1}, {x : 5, y: 1}, {x : 6, y: 1}, {x : 7, y: 1}]
             }
         };
         var canvas = document.getElementById("myCanvas");
         var context = canvas.getContext("2d");
-        var drawGrid = (ctx, gridSize, w, h) => {
+
+        var drawGrid = function(ctx, gridSize, w, h) {
             //draw vertical lines
             ctx.beginPath();
             for (let i = 0; i < w; i = i + gridSize)
@@ -34,55 +47,103 @@
             ctx.strokeStyle = '#EFEFEF' //'#'+Math.random().toString(16).substr(-6);
             ctx.stroke();
         };
+
         //[(x : 1, y : 1),(x : 1, y : 2),(x : 1, y : 3)]
-        var drawSnake = (ctx, snake, gridSize) => {
+        var drawSnake = function(ctx, snake, gridSize) {
             ctx.beginPath();
-            ctx.fillRect(snake.x * gridSize, snake.y * gridSize, gridSize, gridSize);
-            /*for (let i = 0; i < snake.length; i++)
+            ctx.fillStyle = '#AAAAAA';
+            for (let i = 0; i < snake.body.length; i++)
             {
-                ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize, gridSize);
-            }*/
+                ctx.fillRect(snake.body[i].x * gridSize, snake.body[i].y * gridSize, gridSize, gridSize);
+            }
             ctx.stroke();
         };
-        var render = (ctx, canvas, state) => {
+        
+        var render = function(ctx, canvas, state) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawGrid(context, gridSize, width, height);
             drawSnake(context, state.snake, gridSize);
         };
 
-        setInterval(() => {
+        var nextHead = function(currentHead, direction)
+        {
+            if (direction === 1 ){ //RIGHT
+                return {
+                    x : currentHead.x + 1,
+                    y : currentHead.y
+                }
+            }
+            if (direction === 2 ){ //LEFT
+                return {
+                    x : currentHead.x - 1,
+                    y : currentHead.y
+                }
+            }
+            if (direction === 3 ){ //UP
+                return {
+                    x : currentHead.x,
+                    y : currentHead.y - 1
+                }
+            }
+            if (direction === 4 ){ //DOWN
+                return {
+                    x : currentHead.x,
+                    y : currentHead.y + 1
+                }
+            }
+        }
+
+        var getNewSnakeBody = function(direction, body, extend = false)
+        {
+            var newBody = body.slice();
+            var head = newBody[newBody.length -1];
+            if (extend === false){
+                newBody = body.slice(1);
+            }
+            newBody.push(nextHead(head, direction));
+            return newBody;
+        }
+
+        var update = function(state) {
+            //Get new snake body
+            var direction = state.snake.direction;
+            var currentBody = state.snake.body;
+            var newBody = getNewSnakeBody(direction, currentBody);
+            var newState = {
+                ...state, 
+                snake : {
+                    direction : direction, 
+                    body : newBody
+                }
+            };
+            return newState;
+        }
+
+        drawGrid(context, gridSize, width, height);
+        
+        setInterval(function(){
+            state = update(state);
             render(context, canvas, state);
-        });
+        }, renderDelay);
 
         document.addEventListener('keydown', function(event) {
-            console.log("keydown!");
             var currentSnake = state.snake;
-            var newSnake = {}
-            if (event.code == 'ArrowLeft') {
-                newSnake = {
-                    x : currentSnake.x > 0 ? currentSnake.x - 1 : currentSnake.x,
-                    y : currentSnake.y
-                }
-            }
+            var newSnake = currentSnake
             if (event.code == 'ArrowRight') {
-                newSnake = {
-                    x : currentSnake.x < width/gridSize - 1 ? currentSnake.x + 1 : currentSnake.x,
-                    y : currentSnake.y
-                }
+                newSnake = {...currentSnake, direction : 1}
+                state = {...state, snake : newSnake};
+            }
+            if (event.code == 'ArrowLeft') {
+                newSnake = {...currentSnake, direction : 2}
+                state = {...state, snake : newSnake};
             }
             if (event.code == 'ArrowUp') {
-                newSnake = {
-                    x : currentSnake.x,
-                    y : currentSnake.y > 0 ? currentSnake.y - 1 : currentSnake.y
-                }
+                newSnake = {...currentSnake, direction : 3}
+                state = {...state, snake : newSnake};
             }
             if (event.code == 'ArrowDown') {
-                newSnake = {
-                    x : currentSnake.x,
-                    y : currentSnake.y < height/gridSize - 1 ? currentSnake.y + 1: currentSnake.y
-                }
+                newSnake = {...currentSnake, direction : 4}
+                state = {...state, snake : newSnake};
             }
-            state = {...state, snake : newSnake};
         });
     </script>
 </html>
