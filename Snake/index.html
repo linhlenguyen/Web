@@ -1,149 +1,219 @@
 <html>
-    <head>
-    </head>
-    <body>
-        <canvas id="myCanvas" width="800" height="600" style="border:1px solid #AAAAAA;">
-            Your browser does not support the HTML5 canvas tag.
-        </canvas>
-    </body>
-    <script>
-        var width = 800;
-        var height = 600;
-        var gridSize = 30;
-        var snakeColor = '#000000';
-        var renderDelay = 50;
-        var directionMap = {
-            1 : "Right",
-            2 : "Left",
-            3 : "Up",
-            4 : "Down"
-        };
-        var state = {
-            fruits : [
 
-            ],
-            snake : {
-                direction : 1,
-                body : [{x : 0, y: 0}, {x : 0, y: 1}, {x : 1, y: 1}, {x : 2, y: 1}, {x : 3, y: 1}, {x : 4, y: 1}, {x : 5, y: 1}, {x : 6, y: 1}, {x : 7, y: 1}]
-            }
-        };
-        var canvas = document.getElementById("myCanvas");
-        var context = canvas.getContext("2d");
+<head>
+</head>
 
-        var drawGrid = function(ctx, gridSize, w, h) {
-            //draw vertical lines
-            ctx.beginPath();
-            for (let i = 0; i < w; i = i + gridSize)
-            {
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, h);
-            }
-            //draw horizontal lines
-            for (let i = 0; i < h; i = i + gridSize)
-            {
-                ctx.moveTo(0, i);
-                ctx.lineTo(w, i);
-            }
-            ctx.strokeStyle = '#EFEFEF' //'#'+Math.random().toString(16).substr(-6);
-            ctx.stroke();
-        };
+<body>
+    <canvas id="myCanvas" width="800" height="600" style="border:1px solid #AAAAAA;">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+</body>
+<script>
+    var width = 800;
+    var height = 600;
+    var gridSize = 30;
+    var snakeColor = '#000000';
+    var renderDelay = 50;
+    var directionMap = {
+        1: "Right",
+        2: "Left",
+        3: "Up",
+        4: "Down"
+    };
+    var initialState = {
+        fruits: [{ x : 5, y : 5}],
+        isPause: false,
+        isGameOver: false,
+        snake: {
+            direction: 1,
+            body: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 5, y: 1 }, { x: 6, y: 1 }, { x: 7, y: 1 }]
+        }
+    };
+    var state = initialState;
+    var canvas = document.getElementById("myCanvas");
+    var context = canvas.getContext("2d");
 
-        //[(x : 1, y : 1),(x : 1, y : 2),(x : 1, y : 3)]
-        var drawSnake = function(ctx, snake, gridSize) {
-            ctx.beginPath();
-            ctx.fillStyle = '#AAAAAA';
-            for (let i = 0; i < snake.body.length; i++)
-            {
-                ctx.fillRect(snake.body[i].x * gridSize, snake.body[i].y * gridSize, gridSize, gridSize);
-            }
-            ctx.stroke();
-        };
-        
-        var render = function(ctx, canvas, state) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawSnake(context, state.snake, gridSize);
-        };
+    var drawGrid = function (ctx, gridSize, w, h) {
+        //draw vertical lines
+        ctx.beginPath();
+        for (let i = 0; i < w; i = i + gridSize) {
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, h);
+        }
+        //draw horizontal lines
+        for (let i = 0; i < h; i = i + gridSize) {
+            ctx.moveTo(0, i);
+            ctx.lineTo(w, i);
+        }
+        ctx.strokeStyle = '#EFEFEF' //'#'+Math.random().toString(16).substr(-6);
+        ctx.stroke();
+    };
 
-        var nextHead = function(currentHead, direction)
-        {
-            if (direction === 1 ){ //RIGHT
-                return {
-                    x : currentHead.x + 1,
-                    y : currentHead.y
-                }
-            }
-            if (direction === 2 ){ //LEFT
-                return {
-                    x : currentHead.x - 1,
-                    y : currentHead.y
-                }
-            }
-            if (direction === 3 ){ //UP
-                return {
-                    x : currentHead.x,
-                    y : currentHead.y - 1
-                }
-            }
-            if (direction === 4 ){ //DOWN
-                return {
-                    x : currentHead.x,
-                    y : currentHead.y + 1
-                }
+    //[(x : 1, y : 1),(x : 1, y : 2),(x : 1, y : 3)]
+    var drawSnake = function (ctx, snake, gridSize) {
+        ctx.beginPath();
+        ctx.fillStyle = '#AAAAAA';
+        for (let i = 0; i < snake.body.length; i++) {
+            ctx.fillRect(snake.body[i].x * gridSize, snake.body[i].y * gridSize, gridSize, gridSize);
+        }
+        ctx.stroke();
+    };
+
+    var drawFruit = function (ctx, fruits, gridSize){
+        ctx.beginPath();
+        ctx.fillStyle = '#FF0000';
+        for (let i = 0; i < fruits.length; i++) {
+            ctx.fillRect(fruits[i].x * gridSize, fruits[i].y * gridSize, gridSize, gridSize);
+        }
+        ctx.stroke();
+    }
+
+    var drawGameOver = function(ctx, state){
+        if (state.isGameOver){ 
+            ctx.fillText("GAME OVER!", width/2 - gridSize, height/2 - gridSize);
+            ctx.fillText("Press ENTER to reset", width/2 - gridSize, height/2 + gridSize);
+        }
+    }
+
+    var render = function (ctx, canvas, state) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawSnake(context, state.snake, gridSize);
+        drawFruit(context, state.fruits, gridSize);
+        drawGameOver(ctx, state);
+    };
+
+    var nextHead = function (currentHead, direction) {
+        if (direction === 1) { //RIGHT
+            return {
+                x: currentHead.x + 1,
+                y: currentHead.y
             }
         }
-
-        var getNewSnakeBody = function(direction, body, extend = false)
-        {
-            var newBody = body.slice();
-            var head = newBody[newBody.length -1];
-            if (extend === false){
-                newBody = body.slice(1);
+        if (direction === 2) { //LEFT
+            return {
+                x: currentHead.x - 1,
+                y: currentHead.y
             }
-            newBody.push(nextHead(head, direction));
-            return newBody;
         }
+        if (direction === 3) { //UP
+            return {
+                x: currentHead.x,
+                y: currentHead.y - 1
+            }
+        }
+        if (direction === 4) { //DOWN
+            return {
+                x: currentHead.x,
+                y: currentHead.y + 1
+            }
+        }
+    }
 
-        var update = function(state) {
+    var getNewSnakeBody = function (direction, body, extend = false) {
+        var newBody = body.slice();
+        var head = newBody[newBody.length - 1];
+        if (extend === false) {
+            newBody = body.slice(1);
+        }
+        newBody.push(nextHead(head, direction));
+        return newBody;
+    }
+
+    var update = function (state) {
+        if (state.isPause === false && state.isGameOver === false) {
             //Get new snake body
             var direction = state.snake.direction;
             var currentBody = state.snake.body;
             var newBody = getNewSnakeBody(direction, currentBody);
             var newState = {
-                ...state, 
-                snake : {
-                    direction : direction, 
-                    body : newBody
+                ...state,
+                snake: {
+                    direction: direction,
+                    body: newBody
                 }
             };
             return newState;
         }
+        return state;
+    }
 
-        drawGrid(context, gridSize, width, height);
-        
-        setInterval(function(){
-            state = update(state);
-            render(context, canvas, state);
-        }, renderDelay);
+    var detectCollison = function (state) {
+        /*
+        head = any of body 
+        head hits wall
+        */
+       var snakeBody = state.snake.body;
+       var head = snakeBody[snakeBody.length - 1];
+       for (let i = 0; i < snakeBody.length - 1; i++){
+           if (head.x === snakeBody[i].x && head.y === snakeBody[i].y){
+               return true;
+           }
+       }
+       if (head.x < 0){
+           return true;
+       }
+       if (head.y < 0){
+           return true;
+       }
+       if (head.x > width/gridSize){
+           return true;
+       }
+       if (head.y > height/gridSize){
+           return true;
+       }
+       return false;
+    }
 
-        document.addEventListener('keydown', function(event) {
-            var currentSnake = state.snake;
-            var newSnake = currentSnake
-            if (event.code == 'ArrowRight') {
-                newSnake = {...currentSnake, direction : 1}
-                state = {...state, snake : newSnake};
-            }
-            if (event.code == 'ArrowLeft') {
-                newSnake = {...currentSnake, direction : 2}
-                state = {...state, snake : newSnake};
-            }
-            if (event.code == 'ArrowUp') {
-                newSnake = {...currentSnake, direction : 3}
-                state = {...state, snake : newSnake};
-            }
-            if (event.code == 'ArrowDown') {
-                newSnake = {...currentSnake, direction : 4}
-                state = {...state, snake : newSnake};
-            }
-        });
-    </script>
+    var resetGame = function () {
+        state = initialState;
+    }
+
+    drawGrid(context, gridSize, width, height);
+
+    //Periodically update game state and render on screen
+    setInterval(function () {
+        state = update(state);
+        var hasCollide = detectCollison(state);
+        if (hasCollide){
+            state = {...state, isGameOver: true};
+        }
+        render(context, canvas, state);
+    }, renderDelay);
+
+    //Handle user input
+    document.addEventListener('keydown', function (event) {
+        console.log(event.code);
+        var currentSnake = state.snake;
+        var newSnake = currentSnake
+        if (event.code == 'ArrowRight' && currentSnake.direction !== 2) { //Stop snake from going back on itself
+            newSnake = { ...currentSnake, direction: 1 }
+            state = { ...state, snake: newSnake };
+        }
+        if (event.code == 'ArrowLeft' && currentSnake.direction !== 1) {
+            newSnake = { ...currentSnake, direction: 2 }
+            state = { ...state, snake: newSnake };
+        }
+        if (event.code == 'ArrowUp' && currentSnake.direction !== 4) {
+            newSnake = { ...currentSnake, direction: 3 }
+            state = { ...state, snake: newSnake };
+        }
+        if (event.code == 'ArrowDown' && currentSnake.direction !== 3) {
+            newSnake = { ...currentSnake, direction: 4 }
+            state = { ...state, snake: newSnake };
+        }
+        if (event.code == 'Enter'){
+            resetGame();
+        }
+        if (event.code == 'Space'){
+            console.log("Space pressed!");
+            var newisPause = !state.isPause;
+            state = {...state, isPause : newisPause}
+        }
+    });
+
+        //Collitions detection
+        //Game loop (start, pause, reset)
+
+</script>
+
 </html>
