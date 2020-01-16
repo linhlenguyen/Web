@@ -12,6 +12,8 @@
     var width = 800;
     var height = 600;
     var gridSize = 30;
+    var widthCellCount = width/gridSize;
+    var heightCellCount = height/gridSize;
     var snakeColor = '#000000';
     var renderDelay = 50;
     var directionMap = {
@@ -24,6 +26,7 @@
         fruits: [{ x : 5, y : 5}],
         isPause: false,
         isGameOver: false,
+        extend: false,
         snake: {
             direction: 1,
             body: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 5, y: 1 }, { x: 6, y: 1 }, { x: 7, y: 1 }]
@@ -32,6 +35,8 @@
     var state = initialState;
     var canvas = document.getElementById("myCanvas");
     var context = canvas.getContext("2d");
+
+    //RENDERER
 
     var drawGrid = function (ctx, gridSize, w, h) {
         //draw vertical lines
@@ -82,7 +87,30 @@
         drawGameOver(ctx, state);
     };
 
-    var nextHead = function (currentHead, direction) {
+    //GAME LOGIC
+
+    var generateFruit = function(state){
+        while(true){
+            var ranX = Math.floor(Math.random() * widthCellCount);
+            var ranY = Math.floor(Math.random() * heightCellCount);
+            var allFruits = state.fruits;
+            var snakeBody = state.snake.body;
+            var combineCoords = allFruits.concat(snakeBody);
+            for (let i = 0; i < combineCoords.length; i++){
+                var cX = combineCoords[i].x;
+                var cY = combineCoords[i].y;
+                if (cX === ranX && cY === ranY){
+                    continue;
+                }
+            }
+            return {
+                ...state,
+                fruits: allFruits.concat([{ x : ranX, y : ranY }])
+            };
+        }
+    }
+
+    var getNextHead = function (currentHead, direction) {
         if (direction === 1) { //RIGHT
             return {
                 x: currentHead.x + 1,
@@ -109,29 +137,38 @@
         }
     }
 
-    var getNewSnakeBody = function (direction, body, extend = false) {
-        var newBody = body.slice();
+    var getNewSnakeBody = function (state) {
+        var newBody = state.snake.body.slice();
         var head = newBody[newBody.length - 1];
-        if (extend === false) {
-            newBody = body.slice(1);
+        if (state.extend === false) {
+            newBody = state.snake.body.slice(1);
         }
-        newBody.push(nextHead(head, direction));
-        return newBody;
+        var nextHead = getNextHead(head, state.snake.direction)
+        newBody.push(nextHead);
+        var newFruits = state.fruits;
+        for (let i = 0; i < newFruits.length; i++){
+            var fx = newFruits[i].x;
+            var fy = newFruits[i].y;
+            if (nextHead.x === fx && nextHead.y === fy){
+                newFruits = newFruits.filter(fruit => !(fruit.x === fx && fruit.y === fy));
+                newBody = newBody.slice(1);
+            }
+        }
+        return {
+            ...state,
+            extend : false,
+            fruits : newFruits,
+            snake: {
+                direction: state.snake.direction,
+                body: newBody
+            }
+        };
     }
 
     var update = function (state) {
         if (state.isPause === false && state.isGameOver === false) {
             //Get new snake body
-            var direction = state.snake.direction;
-            var currentBody = state.snake.body;
-            var newBody = getNewSnakeBody(direction, currentBody);
-            var newState = {
-                ...state,
-                snake: {
-                    direction: direction,
-                    body: newBody
-                }
-            };
+            var newState = getNewSnakeBody(state);
             return newState;
         }
         return state;
@@ -177,12 +214,21 @@
         if (hasCollide){
             state = {...state, isGameOver: true};
         }
+        console.log(state.snake.body.length);
         render(context, canvas, state);
     }, renderDelay);
 
+    
+    setInterval(function() {
+        if (state.isPause || state.isGameOver){
+            return;
+        }
+        state = generateFruit(state);
+        state.extend = true;
+    }, 1000);
+
     //Handle user input
     document.addEventListener('keydown', function (event) {
-        console.log(event.code);
         var currentSnake = state.snake;
         var newSnake = currentSnake
         if (event.code == 'ArrowRight' && currentSnake.direction !== 2) { //Stop snake from going back on itself
@@ -210,9 +256,13 @@
             state = {...state, isPause : newisPause}
         }
     });
-
-        //Collitions detection
-        //Game loop (start, pause, reset)
+    
+    /*
+    Spawn fruits randomly
+    Eat fruit to reduce size
+    Size increment periodically
+    High score
+    */
 
 </script>
 
